@@ -1,30 +1,39 @@
-
-const COUNTRIES_API = 'https://restcountries.com/v3.1';
+const COUNTRIES_API = 'https://restcountries.com/v3.1/all';
 const WEATHER_API = 'https://api.openweathermap.org/data/2.5/weather';
-const WEATHER_API_KEY = '4d8fb5b93d4af21d66a2948710284366'; // OpenWeatherMap API key
+const WEATHER_API_KEY = '4d8fb5b93d4af21d66a2948710284366'; // your API key
 
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const countriesGrid = document.getElementById('countries-grid');
 const modal = document.getElementById('modal');
 const closeBtn = document.querySelector('.close');
+const modalData = document.getElementById('modal-data');
+const filterBtn = document.getElementById('filterBtn');
+const continentFilter = document.getElementById('continentFilter');
+const pagination = document.getElementById('pagination');
 
-async function fetchCountries(searchTerm = '') {
+let allCountries = [];
+let currentPage = 1;
+const countriesPerPage = 12;
+
+async function fetchAllCountries() {
   try {
-    const response = await fetch(`${COUNTRIES_API}/name/${searchTerm}`);
+    const response = await fetch(COUNTRIES_API);
     const data = await response.json();
-    return data;
+    allCountries = data;
+    displayCountries(allCountries);
   } catch (error) {
     console.error('Error fetching countries:', error);
-    return [];
   }
 }
 
 async function fetchWeather(city) {
+  if (!city) return null;
   try {
-    const response = await fetch(
-      `${WEATHER_API}?q=${city}&appid=${WEATHER_API_KEY}&units=metric`
-    );
+    const response = await fetch(`${WEATHER_API}?q=${encodeURIComponent(city)}&appid=${WEATHER_API_KEY}&units=metric`);
+    if (!response.ok) {
+      return null;
+    }
     const data = await response.json();
     return data;
   } catch (error) {
@@ -35,109 +44,130 @@ async function fetchWeather(city) {
 
 function displayCountries(countries) {
   countriesGrid.innerHTML = '';
-  
-  countries.forEach(country => {
+
+  const startIndex = (currentPage - 1) * countriesPerPage;
+  const endIndex = startIndex + countriesPerPage;
+  const currentCountries = countries.slice(startIndex, endIndex);
+
+  currentCountries.forEach(country => {
     const card = document.createElement('div');
     card.className = 'country-card';
-    
+
     card.innerHTML = `
-      <img src="${country.flags.png}" alt="${country.name.common} flag" class="country-flag">
+      <img src="${country.flags?.png || ''}" alt="${country.name?.common || ''} flag" class="country-flag">
       <div class="country-info">
-        <div class="country-name">${country.name.common}</div>
+        <div class="country-name">${country.name?.common || 'N/A'}</div>
         <p>Capital: ${country.capital?.[0] || 'N/A'}</p>
-        <p>Population: ${country.population.toLocaleString()}</p>
-        <button class="details-btn" data-country='${JSON.stringify(country)}'>More Details</button>
+        <p>Population: ${country.population?.toLocaleString() || 'N/A'}</p>
+        <button class="details-btn">More Details</button>
       </div>
     `;
-    
+
+    const detailsBtn = card.querySelector('.details-btn');
+    detailsBtn.addEventListener('click', () => showDetails(country));
+
     countriesGrid.appendChild(card);
   });
+
+  setupPagination(countries);
 }
 
-async function showDetails(countryData) {
-  const weatherData = await fetchWeather(countryData.capital?.[0]);
-  
-  const modalData = document.getElementById('modal-data');
+function setupPagination(countries) {
+  pagination.innerHTML = '';
+
+  const totalPages = Math.ceil(countries.length / countriesPerPage);
+
+  const prevBtn = document.createElement('button');
+  prevBtn.innerText = '« Prev';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      displayCountries(countries);
+    }
+  });
+  pagination.appendChild(prevBtn);
+
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.innerText = i;
+    if (i === currentPage) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      currentPage = i;
+      displayCountries(countries);
+    });
+    pagination.appendChild(btn);
+  }
+
+  const nextBtn = document.createElement('button');
+  nextBtn.innerText = 'Next »';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      displayCountries(countries);
+    }
+  });
+  pagination.appendChild(nextBtn);
+}
+
+async function showDetails(country) {
+  const capital = country.capital?.[0] || '';
+  const weatherData = await fetchWeather(capital);
+
+  let weatherHTML = '';
+  if (weatherData) {
+    weatherHTML = `
+      <h3>Weather in ${capital}</h3>
+      <p>Temperature: ${weatherData.main.temp} °C</p>
+      <p>Weather: ${weatherData.weather[0].description}</p>
+      <p>Humidity: ${weatherData.main.humidity}%</p>
+    `;
+  } else {
+    weatherHTML = `<p>Weather information not available</p>`;
+  }
+
   modalData.innerHTML = `
-    <h2>${countryData.name.common}</h2>
-    <img src="${countryData.flags.png}" alt="${countryData.name.common} flag" style="width: 200px;">
-    <p><strong>Official Name:</strong> ${countryData.name.official}</p>
-    <p><strong>Capital:</strong> ${countryData.capital?.[0] || 'N/A'}</p>
-    <p><strong>Population:</strong> ${countryData.population.toLocaleString()}</p>
-    <p><strong>Region:</strong> ${countryData.region}</p>
-    <p><strong>Subregion:</strong> ${countryData.subregion || 'N/A'}</p>
-    <p><strong>Languages:</strong> ${Object.values(countryData.languages || {}).join(', ')}</p>
-    <p><strong>Currencies:</strong> ${Object.values(countryData.currencies || {}).map(curr => `${curr.name} (${curr.symbol})`).join(', ')}</p>
-    <p><strong>Area:</strong> ${countryData.area.toLocaleString()} km²</p>
-    
-    ${weatherData ? `
-      <div class="weather-info">
-        <h3>Weather in ${countryData.capital?.[0]}</h3>
-        <p>Temperature: ${weatherData.main.temp}°C</p>
-        <p>Weather: ${weatherData.weather[0].description}</p>
-        <p>Humidity: ${weatherData.main.humidity}%</p>
-      </div>
-    ` : ''}
+    <h2>${country.name?.common || 'N/A'}</h2>
+    <img src="${country.flags?.png || ''}" alt="${country.name?.common || ''}" style="width:200px;">
+    <p><strong>Capital:</strong> ${capital || 'N/A'}</p>
+    <p><strong>Population:</strong> ${country.population?.toLocaleString() || 'N/A'}</p>
+    <p><strong>Region:</strong> ${country.region || 'N/A'}</p>
+    <p><strong>Subregion:</strong> ${country.subregion || 'N/A'}</p>
+    <p><strong>Area:</strong> ${country.area?.toLocaleString() || 'N/A'} km²</p>
+    ${weatherHTML}
   `;
-  
+
   modal.style.display = 'block';
 }
 
-async function performSearch() {
-  const searchTerm = searchInput.value.trim();
-  if (searchTerm) {
-    try {
-      const countries = await fetchCountries(searchTerm);
-      if (countries && countries.length > 0) {
-        displayCountries(countries);
-      } else {
-        countriesGrid.innerHTML = '<p>No countries found. Try another search term.</p>';
-      }
-    } catch (error) {
-      countriesGrid.innerHTML = '<p>Error searching for countries. Please try again.</p>';
-    }
-  } else {
-    loadIndianSubcontinentCountries();
-  }
+function searchCountries() {
+  const term = searchInput.value.trim().toLowerCase();
+  const filtered = allCountries.filter(country =>
+    country.name.common.toLowerCase().includes(term)
+  );
+  currentPage = 1;
+  displayCountries(filtered);
 }
 
-searchBtn.addEventListener('click', performSearch);
-searchInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
-    performSearch();
-  }
-});
-
-closeBtn.addEventListener('click', () => {
-  modal.style.display = 'none';
-});
-
-window.addEventListener('click', (e) => {
-  if (e.target === modal) {
-    modal.style.display = 'none';
-  }
-});
-
-// Load Indian subcontinent countries
-const INDIAN_SUBCONTINENT = ['india', 'pakistan', 'bangladesh', 'nepal', 'bhutan', 'sri lanka', 'maldives'];
-
-async function loadIndianSubcontinentCountries() {
-  const allCountries = [];
-  for (const country of INDIAN_SUBCONTINENT) {
-    const data = await fetchCountries(country);
-    if (data && data.length > 0) {
-      allCountries.push(data[0]);
-    }
-  }
-  displayCountries(allCountries);
+function filterCountries() {
+  const selectedRegion = continentFilter.value;
+  const filtered = selectedRegion === "all"
+    ? allCountries
+    : allCountries.filter(c => c.region === selectedRegion);
+  currentPage = 1;
+  displayCountries(filtered);
 }
 
-// Add click event listener for details buttons
-document.addEventListener('click', async (e) => {
-  if (e.target.classList.contains('details-btn')) {
-    const countryData = JSON.parse(e.target.dataset.country);
-    await showDetails(countryData);
-  }
+searchBtn.addEventListener('click', searchCountries);
+filterBtn.addEventListener('click', filterCountries);
+searchInput.addEventListener('keypress', e => {
+  if (e.key === 'Enter') searchCountries();
+});
+closeBtn.addEventListener('click', () => modal.style.display = 'none');
+window.addEventListener('click', e => {
+  if (e.target === modal) modal.style.display = 'none';
 });
 
-window.addEventListener('load', loadIndianSubcontinentCountries);
+window.addEventListener('load', fetchAllCountries);
+continentFilter.addEventListener('change', filterCountries);

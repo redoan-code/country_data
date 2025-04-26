@@ -1,142 +1,202 @@
+/* style.css */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+nav {
+  background-color: #e4c875;
+  color: rgb(0, 0, 0);
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.search-container {
+  display: flex;
+}
+
+.search-container input {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 4px 0 0 4px;
+}
+
+.search-container button {
+  padding: 0.5rem;
+  border: none;
+  background-color: white;
+  color: #4CAF50;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+
+.filter-container {
+  padding: 1rem;
+  text-align: center;
+}
+
+#countries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.country-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  background: #f9f9f9;
+}
+
+.country-flag {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.details-btn {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.modal {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none; 
+  overflow-y: auto;
+}
+
+.modal.show {
+  display: block;
+}
+
+.modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #f9f9f9;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease;
+}
+
+.close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.close:hover {
+  color: #000;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
   }
-  
-  body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: #f5f5f5;
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
-  
-  nav {
-    background-color: #2c3e50;
-    padding: 1rem;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-  }
-  
-  .search-container {
-    display: flex;
-    gap: 0.5rem;
-  }
-  
-  #searchInput {
-    padding: 0.5rem;
-    border: none;
-    border-radius: 4px;
-    width: 250px;
-  }
-  
-  #searchBtn {
-    padding: 0.5rem 1rem;
-    background-color: #3498db;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    cursor: pointer;
-  }
-  
-  main {
-    flex: 1;
-    padding: 2rem;
-  }
-  
-  #countries-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
-  }
-  
-  .country-card {
-    background-color: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
-  }
-  
-  .country-card:hover {
-    transform: translateY(-5px);
-  }
-  
-  .country-flag {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-  }
-  
-  .country-info {
-    padding: 1rem;
-  }
-  
-  .country-name {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-  }
-  
-  .details-btn {
-    background-color: #2ecc71;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 1rem;
-  }
-  
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-  }
-  
-  .modal-content {
-    background-color: white;
-    margin: 15% auto;
-    padding: 2rem;
-    width: 80%;
-    max-width: 600px;
-    border-radius: 8px;
-    position: relative;
-  }
-  
-  .close {
-    position: absolute;
-    right: 1rem;
-    top: 0.5rem;
-    font-size: 2rem;
-    cursor: pointer;
-  }
-  
-  footer {
-    background-color: #2c3e50;
-    color: white;
-    text-align: center;
-    padding: 1rem;
-  }
-  
-  .weather-info {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-  }
-  
+}
+
+
+
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  background: #e4c875;
+  color: rgb(0, 0, 0);
+}
+
+.pagination {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.pagination button {
+  margin: 0 5px;
+  padding: 5px 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.pagination button.active {
+  background-color: #45a049;
+}
+
+.pagination button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.filter-container select,
+.filter-container button {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f8f8f8;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.filter-container select:hover,
+.filter-container button:hover {
+  background-color: #e2e2e2;
+}
+
+.filter-container button {
+  background-color: #151f29;
+  color: white;
+  border: none;
+}
+
+.filter-container button:hover {
+  background-color: #0056b3;
+}
